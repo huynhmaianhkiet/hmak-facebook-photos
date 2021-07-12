@@ -1,0 +1,384 @@
+<?php
+/*
+  Plugin Name: HMAK Facebook Photos
+  Version: 1.0
+  Description: Showing your Facebook Photos, Facebook Albums on your WordPress website.
+  Author: Huynh Mai Anh Kiet
+  Author URI: http://www.anhkiet.info
+ */
+	 
+class HMAK_Facebook_Photos {
+
+	function __construct() {
+		add_action("admin_menu", array(&$this, 'add_menu_item'));
+		add_shortcode('hmakfbalbum', array(&$this, 'HMAK_Facebook_Album_Shortcode'));
+		add_shortcode('hmakfbphoto', array(&$this, 'HMAK_Facebook_Photo_Shortcode'));
+		add_action( 'wp_enqueue_scripts', array(&$this, 'adding_styles'));		
+		add_action('admin_enqueue_scripts', array(&$this,'custom_css_mce_button'));
+		add_action( 'admin_head', array(&$this, 'custom_mce_button'));		
+		add_action( 'admin_init', function() {
+			register_setting( 'hmak-facebook-photos-plugin-settings', 'facebook_album_fb_app_id' );
+			register_setting( 'hmak-facebook-photos-plugin-settings', 'facebook_album_fb_app_secret' );
+		});			
+		$GLOBALS['HMAKFBAlbum_authToken'] = $this->get_facebook_token();
+	}
+	
+	function custom_mce_button() {
+		if ( !current_user_can( 'edit_posts' ) || !current_user_can( 'edit_pages' ) ) {
+			return false;
+		}
+		if ( 'true' == get_user_option( 'rich_editing' ) ) {
+			add_filter( 'mce_external_plugins', array(&$this, 'custom_tinymce_plugin' ));
+			add_filter( 'mce_buttons', array(&$this, 'register_mce_button' ));
+		}
+	}
+	
+	function custom_tinymce_plugin( $plugin_array ) {
+		$plugin_array['custom_mce_button'] = plugins_url('/editor_plugin.js', __FILE__);
+		return $plugin_array;
+	}
+	
+	function register_mce_button( $buttons ) {
+		array_push( $buttons, 'custom_mce_button' );
+		return $buttons;
+	}
+		
+	function custom_css_mce_button() {
+		wp_enqueue_style('symple_shortcodes-tc', plugins_url('/admin.css', __FILE__));
+	}
+	
+	function check_cURL(){
+		return function_exists('curl_version');
+	}
+	
+	function settings_page()
+	{	
+		?>
+			<style>
+				.hmak-facebook-photos-admin-wrapper h3.hndle2{
+					border-bottom: 1px solid #eeeeee;
+				}
+				.hmak-facebook-photos-admin-wrapper .left-sections {
+					width: 49%;
+					margin-right: 1%;
+					float: left;
+				}
+				.hmak-facebook-photos-admin-wrapper .right-sections{
+					width: 50%;
+					float: left;
+				}
+				.hmak-facebook-photos-admin-wrapper img,
+				.hmak-facebook-photos-admin-wrapper input,
+				.hmak-facebook-photos-admin-wrapper table{
+					width:100%;
+				}
+				.hmak-facebook-photos-admin-wrapper .faq{
+					margin-bottom:10px;
+				}
+				.hmak-facebook-photos-admin-wrapper .ask{
+					font-weight: 700;
+					font-size: 15px;
+					cursor: pointer;					
+				}
+				.hmak-facebook-photos-admin-wrapper .ans{
+					display:none;
+					word-wrap: break-word;
+				}
+				.hmak-facebook-photos-admin-wrapper .clear{
+					clear:both;
+				}
+				#paypal-donation{
+					text-align:center;
+				}
+				#paypal-donation input{
+					width:auto;
+				}
+				@media (max-width: 1024px){
+					.hmak-facebook-photos-admin-wrapper .left-sections,
+					.hmak-facebook-photos-admin-wrapper .right-sections{
+						width: 100%;
+						float: none;
+					}
+				}
+			</style>
+			<script>
+				jQuery(document).ready(function(){
+					jQuery(".hmak-facebook-photos-admin-wrapper .ask").click(function(){
+						jQuery('.hmak-facebook-photos-admin-wrapper .ask').removeClass('open'); 
+						if(false==jQuery(this).next().is(':visible')){
+							jQuery('.hmak-facebook-photos-admin-wrapper .ans').slideUp(300);
+							jQuery(this).toggleClass('open');
+						}
+						jQuery(this).next().slideToggle(300);    
+					});
+				});
+			</script>
+			<h1>HMAK Facebook Photos</h1>
+				<?php
+					$localhost_ips = array('127.0.0.1','::1');
+					if(!in_array($_SERVER['REMOTE_ADDR'], $localhost_ips)){
+						if(!$this->check_cURL()){
+							echo '<div class="error notice"><p style="color:red;">This plugin cannot work because cURL extension is not available on your web server.</p></div>';
+						}					
+					}else{
+						echo '<div class="error notice"><p style="color:red;">This plugin cannot work because the Facebook API doesn\'t work on localhost.</p></div>';						
+					}					
+				?>						
+			<div id="poststuff" class="hmak-facebook-photos-admin-wrapper metabox-holder has-right-sidebar">
+				<div class="inner-sidebar">
+					<div id="side-sortables" class="meta-box-sortabless ui-sortable">
+						<div class="postbox ">
+							<h3 class="hndle2"><span>About HMAK Facebook Photos</span></h3>
+							<div class="inside">
+								<p>This plugin will help to show Facebook Photos or Facebook Album on your WordPress website.</p>
+								<p>
+									Version: 1.0<br>
+									Release date: 07/03/2018
+								</p>
+								<form id="paypal-donation" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+									<input type="hidden" name="cmd" value="_s-xclick">
+									<input type="hidden" name="hosted_button_id" value="VVV645CQZTCRA">
+									<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+									<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+								</form>								
+							</div>
+						</div>
+						<div class="postbox ">
+								<h3 class="hndle2"><span>About Me</span></h3>
+								<div class="inside">
+									<p></p>
+									<p>My name is Kiet. I’m come from Vietnam. I’m a web developer and be working for a website development company. You can contact me via:</p>
+									<ul>
+										<li>Email: <a href="mailto:huynhmaianhkiet@gmail.com">HuynhMaiAnhKiet@Gmail.Com</a></li>
+										<li>Facebook: <a href="//www.facebook.com/huynhmaianhkiet" target="_blank">HuynhMaiAnhKiet</a></li>
+										<li>Twitter: <a href="//twitter.com/huynhmaianhkiet" target="_blank">HuynhMaiAnhKiet</a></li>
+										<li>Instagram: <a href="//www.instagram.com/huynhmaianhkiet/" target="_blank">HuynhMaiAnhKiet</a></li>
+										<li>Website: <a href="//www.anhkiet.info" target="_blank">wWw.AnhKiet.Info</a></li>
+									</ul>
+									<p></p>
+								</div>
+						</div>
+					</div>
+				</div>
+				<div class="has-sidebar sm-padded">
+					<div id="post-body-content" class="has-sidebar-content">
+						<div class="meta-box-sortabless">
+							<div class="postbox">
+								<h3 class="hndle2">HMAK FACEBOOK PHOTOS</h3>
+								<div class="inside">									
+									<?php
+										if(current_user_can('administrator')){
+									?>									
+									<div class="left-sections">
+										<h3 class="hndle2">Settings</h3>
+										<form action="options.php" method="post">
+											<?php
+												settings_fields( 'hmak-facebook-photos-plugin-settings' );
+												do_settings_sections( 'hmak-facebook-photos-plugin-settings' );
+											?>
+											<table>
+												<tbody>												
+													<tr>
+														<td><span class="label">Facebook App ID</span></td>
+														<td><input type="text" name="facebook_album_fb_app_id" value="<?php echo esc_attr( get_option('facebook_album_fb_app_id') ); ?>"></td>
+													</tr>
+													<tr>
+														<td><span class="label">Facebook App Secret</span></td>
+														<td><input type="text" name="facebook_album_fb_app_secret" value="<?php echo esc_attr( get_option('facebook_album_fb_app_secret') ); ?>"></td>
+													</tr>
+													<tr>
+														<td></td>
+														<td><?php submit_button(); ?></td>
+													</tr>												
+												</tbody>
+											</table>										
+										</form>
+									</div>
+									<div class="right-sections">
+										
+										<h3 class="hndle2">User Manual</h3>
+										
+										<div class="faq">
+											<div class="ask">How to create an App on Facebook?</div>
+											<div class="ans">											
+												<p><b>Steps for creating an app</b></p>
+												<ol>
+													<li>Create an app on developers.facebook.com</li>
+													<li>On settings -> basic (of your fb app) enter your website domain under app domain</li>
+													<li>Click on add platform on the bottom of the same page and add a website... use your web address there</li>
+													<li>Go to <i>App review</i> menu and make your app public</li>
+													<li>Go to <i>Dashboard</i> menu, copy and note the App ID and Secret. You'll need to provide those in <i>General Settings</i></li>
+												</ol>											
+											</div>
+										</div>
+										
+										<div class="faq">
+											<div class="ask">How to use the Facebook App ID and Facebook App Secret?</div>
+											<div class="ans">							
+												<p>When Plugin setup is complete, Go to your <i>WordPress Admin -> HMAK FB Photos</i> menu and save those value on appropriate fields.</p>
+												<p>After that, click <i>Save Changes</i></p>
+											</div>
+										</div>
+										
+										<div class="faq">
+											<div class="ask">How to find a Facebook album ID?</div>
+											<div class="ans">											
+												<p>Navigate to your photo album in Facebook. Then you can find the album ID in your browser's address bar.</p>
+												<p>For example: https://www.facebook.com/pg/mangbinhdinh.info/photos/?tab=album&album_id=<font style="font-weight:600;color:red;">1091121734251598</font></p>											
+											</div>
+										</div>
+										
+										<div class="faq">
+											<div class="ask">How to find a Facebook photo ID?</div>
+											<div class="ans">											
+												<p>Navigate to your photo in Facebook. Then you can find the photo ID in your browser's address bar.</p>
+												<p>For example: https://www.facebook.com/mangbinhdinh.info/photos/a.1091121734251598.1073741850.344612895569156/<font style="font-weight:600;color:red;">1091121894251582</font>/?type=3&theater</p>											
+											</div>
+										</div>
+										
+										<div class="faq">
+											<div class="ask">How to insert Facebook Album/Photo into a post/page?</div>
+											<div class="ans">											
+												<p>You can insert the Facebook Album or  Photo in any page/post or even in PHP code using plugin shortcode.</p>
+												<p>Album: <code>[hmakfbalbum id=12345]</code> - 12345 is a Facebook album ID</p>
+												<p>Photo: <code>[hmakfbphoto id=54321]</code> - 54321 is a Facebook photo ID</p>
+												<p>Also a command button on editor help you easier to insert shortcode.</p>
+												<p><img src="<?php echo plugins_url('img/btn-editor.png', __FILE__); ?>"></p>
+											</div>
+										</div>
+										
+										<div class="faq">
+											<div class="ask">I found an issue. How do I report it?</div>
+											<div class="ans">											
+												<p>If you found any issue, please let me know by send email to me at <a href="mailto:huynhmaianhkiet@gmail.com">huynhmaianhkiet@gmail.com</a>.</p>
+											</div>
+										</div>
+										
+									</div>
+									<?php
+										}else{
+											echo "<p style='text-align:center;'>You don't have permission to access</p>";
+										}
+									?>
+								</div>
+								<div class="clear"></div>
+							</div>							
+							<div class="postbox">
+								<div class="inside">
+									<p style="text-align:center;">Copyright &copy; <?php echo date("Y"); ?> by <a href="http://www.mangbinhdinh.vn" target="_blank">wWw.MangBinhDinh.Vn</a>. All rights reserved.<br>Developed and Designed by <a href="http://www.anhkiet.info" target="_blank">Huynh Mai Anh Kiet</a>.</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		<?php
+	}
+	
+	function get_facebook_token(){
+		$app_id			= get_option('facebook_album_fb_app_id');
+		$app_secret	= get_option('facebook_album_fb_app_secret');
+		$authToken = json_decode($this->HMAK_fetchUrl("https://graph.facebook.com/oauth/access_token?type=client_cred&client_id={$app_id}&client_secret={$app_secret}"));
+		return $authToken;
+	}
+	
+	function HMAK_fetchUrl($url)
+	{
+		 $ch = curl_init();
+		 curl_setopt($ch, CURLOPT_URL, $url);
+		 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		 curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+		 $retData = curl_exec($ch);
+		 curl_close($ch);
+		 return $retData;
+	}
+	
+	function HMAK_Facebook_Photo_Shortcode($atts) {
+		$default = array(
+			'id' => '',
+		);
+		$fb = shortcode_atts($default, $atts);		
+		$photo_id = $fb['id'];		
+		if(isset($GLOBALS['HMAKFBAlbum_authToken'])) {
+			$authToken = $GLOBALS['HMAKFBAlbum_authToken'];
+		} else {
+			$authToken = $this->get_facebook_token();			
+			$GLOBALS['HMAKFBAlbum_authToken'] = $authToken;
+		}		
+		$photo = json_decode($this->HMAK_fetchUrl("https://graph.facebook.com/{$photo_id}?fields=images,name&access_token={$authToken->access_token}"));
+		if(isset($photo->error)){
+			$code = "";
+			return $code;
+		}		
+		$image = $photo->images[0];		
+		if(isset($photo->name)){
+			$caption = '<div class="hmak-facebook-album-image-caption">'.$photo->name.'</div>';
+		}else{
+			$caption = '';
+		}
+		$code .= '<div class="hmak-facebook-album-image-wrapper">';
+		$code .= '<img src="'.$image->source.'">';
+		$code .= $caption;
+		$code .= '</div>';		
+		return $code;		
+	}
+	
+	function HMAK_Facebook_Album_Shortcode($atts) {
+		$default = array(
+			'id' => '',
+		);
+		$fb = shortcode_atts($default, $atts);		
+		$album_id = $fb['id'];		
+		if(isset($GLOBALS['HMAKFBAlbum_authToken'])) {
+			$authToken = $GLOBALS['HMAKFBAlbum_authToken'];
+		} else {
+			$authToken = $this->get_facebook_token();			
+			$GLOBALS['HMAKFBAlbum_authToken'] = $authToken;
+		}		
+		$album = json_decode($this->HMAK_fetchUrl("https://graph.facebook.com/{$album_id}?fields=photos{images,name}&access_token={$authToken->access_token}"));
+		if(isset($album->error)){
+			$code = "";
+			return $code;
+		}
+		
+		$photos = $album->photos->data;					
+		$images = array();
+		foreach($photos as $photo){
+			$caption = "";
+			if(isset($photo->name)){
+				$caption = $photo->name;
+			}
+			$images[] = array(
+				'src'	=> $photo->images[0]->source,
+				'alt'	=> $caption
+			);
+		}
+		$code = "";
+		foreach($images as $image){
+			if($image['alt']!=""){
+				$caption = '<div class="hmak-facebook-album-image-caption">'.$image['alt'].'</div>';
+			}else{
+				$caption = '';
+			}			
+			$code .= '<div class="hmak-facebook-album-image-wrapper">';
+			$code .= '<img src="'.$image['src'].'">';
+			$code .= $caption;
+			$code .= '</div>';			
+		}
+		return $code;
+	}
+	
+	function adding_styles() {
+		wp_register_style('my_stylesheet', plugins_url('style.css', __FILE__));
+		wp_enqueue_style('my_stylesheet');
+	}
+	
+	function add_menu_item()
+	{
+		add_menu_page("HMAK Facebook Photos Panel", "HMAK FB Photos", "manage_options", "hmak-facebook-photos-panel", array(&$this,"settings_page"), null, 99);
+	}
+}
+
+$HMAK_Facebook_Photos = new HMAK_Facebook_Photos();
+
+?>

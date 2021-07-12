@@ -1,0 +1,13 @@
+.hmak-facebook-album-image-wrapper{
+	text-align: center;
+	margin-bottom: 30px;
+}
+.hmak-facebook-album-image-wrapper img{
+	max-width:100%;
+}
+.hmak-facebook-album-image-wrapper .hmak-facebook-album-image-caption{
+	text-align: left;
+    padding: 5px;
+    background: #a6a6a6;
+    color: #fff;
+}

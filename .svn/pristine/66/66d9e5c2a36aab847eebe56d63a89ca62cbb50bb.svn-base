@@ -1,0 +1,35 @@
+(function() {
+    tinymce.PluginManager.add('custom_mce_button', function(editor, url) {
+        editor.addButton('custom_mce_button', {
+            icon: 'hmak-facebook-album',
+            text: 'FB Photos',
+            onclick: function() {
+                editor.windowManager.open({
+                    title: 'Facebook Photos Properties',
+                    body: [{
+                        type: 'textbox',
+                        name: 'fbID',
+                        label: 'ID',
+                        value: ''
+                    }, {
+                        type: 'listbox',
+                        name: 'fbType',
+                        label: 'Type',
+                        values: [{
+                            text: 'Album',
+                            value: 'hmakfbalbum'
+                        }, {
+                            text: 'Photo',
+                            value: 'hmakfbphoto'
+                        }]
+                    }, ],
+                    onsubmit: function(e) {
+                        editor.insertContent(
+                            '[' +e.data.fbType +' id=' + e.data.fbID+']'
+                        );
+                    }
+                });
+            }
+        });
+    });
+})();
