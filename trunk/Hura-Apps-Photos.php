@@ -1,10 +1,10 @@
 <?php
 /*
   Plugin Name: Hura Apps Photos
-  Version: 1.3.4
+  Version: 1.4
   Description: Showing your Facebook Photos, Facebook Albums on your WordPress website.
   Author: Hura Apps
-  Author URI: http://www.huraapps.com
+  Author URI: https://www.huraapps.com
  */
 
 class Hura_Apps_Photos {
@@ -17,8 +17,6 @@ class Hura_Apps_Photos {
 		add_action('admin_enqueue_scripts', array(&$this,'custom_css_mce_button'));
 		add_action( 'admin_head', array(&$this, 'custom_mce_button'));		
 		add_action( 'admin_init', function() {
-			//register_setting( 'hmak-facebook-photos-plugin-settings', 'facebook_album_fb_app_id' );
-			//register_setting( 'hmak-facebook-photos-plugin-settings', 'facebook_album_fb_app_secret' );
 			register_setting( 'hmak-facebook-photos-plugin-settings', 'facebook_album_fb_app_token' );
 		});			
 	}
@@ -158,19 +156,7 @@ class Hura_Apps_Photos {
 						<div class="postbox ">
 							<h3 class="hndle2"><span>About Hura Apps Photos</span></h3>
 							<div class="inside">
-								<p>This plugin will help to show Facebook Photos or Facebook Album on your WordPress website.</p>
-								<p>
-									Version: 1.0 - Release date: 08/03/2018<br>
-									Version: 1.01 - Release date: 15/07/2018<br>
-									Version: 1.02 - Release date: 25/07/2018<br>
-									Version: 1.1 - Release date: 28/01/2019<br>
-									Version: 1.2 - Release date: 21/09/2019<br>
-									Version: 1.3 - Release date: 11/02/2020<br>
-									Version: 1.3.1 - Release date: 24/02/2020<br>
-									Version: 1.3.2 - Release date: 14/03/2020<br>
-									Version: 1.3.3 - Release date: 11/04/2020<br>
-									Version: 1.3.4 - Release date: 14/09/2020<br>
-								</p>
+								<p>This plugin will help to show Facebook photos or Facebook album on your WordPress website.</p>
 								<form id="paypal-donation" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
 									<input type="hidden" name="cmd" value="_s-xclick">
 									<input type="hidden" name="hosted_button_id" value="VVV645CQZTCRA">
@@ -186,9 +172,9 @@ class Hura_Apps_Photos {
 									<p></p>
 									<p>Hura Apps is a Vietnam-based Web & Mobile App development team. You can contact us via:</p>
 									<ul>
-										<li>Email: <a href="mailto:info@huraapps.com">Info@HuraApps.Com</a></li>
-										<li>Facebook: <a href="//www.facebook.com/huraapps" target="_blank">HuraApps</a></li>
-										<li>Website: <a href="//www.huraapps.com" target="_blank">wWw.HuraApps.Com</a></li>
+										<li>Email: <a href="mailto:info@huraapps.com">Info@huraapps.Com</a></li>
+										<li>Facebook: <a href="https://www.facebook.com/huraapps" target="_blank">Huraapps</a></li>
+										<li>Website: <a href="https://www.huraapps.com" target="_blank">wWw.HuraApps.Com</a></li>
 									</ul>
 									<p></p>
 								</div>
@@ -221,17 +207,7 @@ class Hura_Apps_Photos {
 															<input type="text" name="facebook_album_fb_app_token" value="<?php echo esc_attr( get_option('facebook_album_fb_app_token') ); ?>">
 															<em style="display:block;">Click <a href="https://developers.facebook.com/tools/debug/accesstoken/?access_token=<?php echo esc_attr( get_option('facebook_album_fb_app_token') ); ?>" target="_blank">here</a> to check to make sure the validity of this Facebook token.</em>
 														</td>
-													</tr>
-													<!--
-													<tr>
-														<td><span class="label">Facebook App ID</span></td>
-														<td><input type="text" name="facebook_album_fb_app_id" value="<?php echo esc_attr( get_option('facebook_album_fb_app_id') ); ?>"></td>
-													</tr>
-													<tr>
-														<td><span class="label">Facebook App Secret</span></td>
-														<td><input type="text" name="facebook_album_fb_app_secret" value="<?php echo esc_attr( get_option('facebook_album_fb_app_secret') ); ?>"></td>
-													</tr>
-													-->	
+													</tr>														
 													<tr>
 														<td></td>
 														<td><?php submit_button(); ?></td>
@@ -244,28 +220,6 @@ class Hura_Apps_Photos {
 									<div class="right-sections">
 								
 										<h3 class="hndle2">User Manual</h3>
-										
-										<div class="faq">
-											<div class="ask">How to create an App on Facebook?</div>
-											<div class="ans">											
-												<p><b>Steps for creating an app</b></p>
-												<ol>
-													<li>Create an app on developers.facebook.com</li>
-													<li>On settings -> basic (of your fb app) enter your website domain under app domain</li>
-													<li>Click on add platform on the bottom of the same page and add a website... use your web address there</li>
-													<li>Go to <i>App review</i> menu and make your app public</li>
-													<li>Go to <i>Dashboard</i> menu, copy and note the App ID and Secret. You'll need to provide those in <i>General Settings</i></li>
-												</ol>											
-											</div>
-										</div>
-										
-										<div class="faq">
-											<div class="ask">How to use the Facebook App ID and Facebook App Secret?</div>
-											<div class="ans">							
-												<p>When Plugin setup is complete, Go to your <i>WordPress Admin -> Hura Apps Photos</i> menu and save those value on appropriate fields.</p>
-												<p>After that, click <i>Save Changes</i></p>
-											</div>
-										</div>
 										
 										<div class="faq">
 											<div class="ask">How to retrieve Facebook Token?</div>
@@ -310,7 +264,7 @@ class Hura_Apps_Photos {
 										<div class="faq">
 											<div class="ask">How to set up lightbox for images?</div>
 											<div class="ans">											
-												<p>Install <a href="//wordpress.org/extend/plugins/fancybox-for-wordpress/" target="_blank">FancyBox for Wordpress</a>.</p>
+												<p>Install <a href="https://wordpress.org/extend/plugins/fancybox-for-wordpress/" target="_blank">FancyBox for Wordpress</a>.</p>
 												<p>After installation and activation of FancyBox plugin go to it's settings panel.</p>
 												<p>Select "<i>Extra Calls</i>" Tab.</p>
 												<p>Check (activate) "<i>Additional FancyBox Calls</i>".</p>
@@ -348,7 +302,7 @@ class Hura_Apps_Photos {
 							</div>							
 							<div class="postbox">
 								<div class="inside">
-									<p style="text-align:center;">Copyright &copy; <?php echo date("Y"); ?> by <a href="//www.huraapps.com" target="_blank">wWw.HuraApps.Com</a>. All rights reserved.<br>Developed and Designed by <a href="//me.anhkiet.info" target="_blank">Huynh Mai Anh Kiet</a>.</p>
+									<p style="text-align:center;">Copyright &copy; <?php echo date("Y"); ?> by <a href="https://www.huraapps.com" target="_blank">Hura Apps</a>. All rights reserved.<br>Developed and Designed by <a href="https://anhkiet.biz" target="_blank">Kiet Huynh</a>.</p>
 								</div>
 							</div>
 						</div>
@@ -356,13 +310,6 @@ class Hura_Apps_Photos {
 				</div>
 			</div>
 		<?php
-	}
-
-	function get_facebook_token(){
-		$app_id			= get_option('facebook_album_fb_app_id');
-		$app_secret		= get_option('facebook_album_fb_app_secret');
-		$authToken 		= json_decode($this->HMAK_fetchUrl("https://graph.facebook.com/oauth/access_token?type=client_cred&client_id={$app_id}&client_secret={$app_secret}"));
-		return $authToken;
 	}
 
 	function HMAK_fetchUrl($url)

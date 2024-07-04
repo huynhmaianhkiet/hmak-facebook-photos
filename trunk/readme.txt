@@ -3,12 +3,12 @@ Contributors: huynhmaianhkiet
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=VVV645CQZTCRA
 Tags: image, post, page, facebook, album, gallery, photo
 Requires at least: 3.0
-Tested up to: 6.4.2
-Stable tag: 1.3
+Tested up to: 6.6
+Stable tag: 1.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Showing your Facebook Photos, Facebook Albums on your WordPress website.
+Showing your Facebook photos, Facebook albums on your WordPress website.
 
 == Description ==
 
@@ -69,7 +69,7 @@ v1.3.1: Up max images per album to 100, auto update photo in album after every 1
 v1.3.2:  Fixed issue webp images don't appear on Safari
 v1.3.3:  Fixed issue "URL signature expired"
 v1.3.4:  Fixed issue webp images don't appear on iOS
-
+v1.3.4:  Removed redundant codes
 
 == Upgrade notice ==
 
