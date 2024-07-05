@@ -12,7 +12,7 @@ Showing your Facebook photos, Facebook albums on your WordPress website.
 
 == Description ==
 
-This plugin will help to show Facebook Photos or Facebook Album on your WordPress website.
+This plugin will help to show Facebook photos or Facebook album on your WordPress website.
 
 You can insert the Facebook Album or Photo in any page/post or even in PHP code using plugin shortcode.
 
@@ -29,27 +29,40 @@ Also a command button on editor help you easier to insert shortcode.
 
 == Frequently asked questions ==
 
-== A question that someone might have ==
+= How to retrieve Facebook Token? =
 
-### How to create an App on Facebook? ###
-Steps for creating an app:
-- Create an app on developers.facebook.com
-- On settings -> basic (of your fb app) enter your website domain under app domain
-- Click on add platform on the bottom of the same page and add a website... use your web address there
-- Go to App review menu and make your app public
-- Go to Dashboard menu, copy and note the App ID and Secret. You'll need to provide those in General Settings
+- Go to https://fb.anhkiet.info.
+- Click onto Login with Facebook button.
+- Login into your Facebook account.
+- Click Continue as... to install Anh Kiet Solutions app into your Facebook.
+- Choose the page you want to retrieve photos and click Next button.
+- Turn on the Manage your Pages option and click Done button.
+- Click OK to generate your token.
+- Your Facebook token will appear in next page.
 
-### How to use the Facebook App ID and Facebook App Secret? ###
-When Plugin setup is complete, Go to your WordPress Admin -> Hura Photos menu and save those value on appropriate fields.
-After that, click Save Changes
+= How to find a Facebook album ID? =
 
-### How to insert Facebook Album/Photo into a post/page? ###
+Navigate to your photo album on Facebook. Then you can find the album ID in your browser's address bar.
+
+Eg: https://www.facebook.com/pg/mangbinhdinh.info/photos/?tab=album&album_id=1091121734251598 - The album ID is 1091121734251598
+
+= How to find a Facebook photo ID? =
+
+Navigate to your photo on Facebook. Then you can find the photo ID in your browser's address bar.
+
+Eg: https://www.facebook.com/mangbinhdinh.info/photos/a.1091121734251598.1073741850.344612895569156/1091121894251582/?type=3&theater - The album ID is 1091121894251582
+
+= How to insert Facebook Album/Photo into a post/page? =
+
 You can insert the Facebook Album or Photo in any page/post or even in PHP code using plugin shortcode.
+
 - Album: [hmakfbalbum id=12345] - 12345 is a Facebook album ID
 - Photo: [hmakfbphoto id=54321] - 54321 is a Facebook photo ID
+
 Also a command button on editor help you easier to insert shortcode.
 
-### I found an issue. How do I report it? ###
+= I found an issue. How do I report it? =
+
 If you found any issue, please let me know by send email to me at huynhmaianhkiet@gmail.com.
 
 == Screenshots ==
@@ -72,7 +85,3 @@ v1.3.4:  Fixed issue webp images don't appear on iOS
 v1.3.4:  Removed redundant codes
 
 == Upgrade notice ==
-
-
-
-== Arbitrary section 1 ==

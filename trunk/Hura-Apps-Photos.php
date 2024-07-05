@@ -172,7 +172,7 @@ class Hura_Apps_Photos {
 									<p></p>
 									<p>Hura Apps is a Vietnam-based Web & Mobile App development team. You can contact us via:</p>
 									<ul>
-										<li>Email: <a href="mailto:info@huraapps.com">Info@huraapps.Com</a></li>
+										<li>Email: <a href="mailto:info@huraapps.com">Info@huraapps.com</a></li>
 										<li>Facebook: <a href="https://www.facebook.com/huraapps" target="_blank">Huraapps</a></li>
 										<li>Website: <a href="https://www.huraapps.com" target="_blank">wWw.HuraApps.Com</a></li>
 									</ul>
