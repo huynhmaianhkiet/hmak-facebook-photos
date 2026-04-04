@@ -10,12 +10,12 @@
 class Hura_Apps_Photos {
 
 	function __construct() {
-		add_action("admin_menu", array(&$this, 'add_menu_item'));
-		add_shortcode('hmakfbalbum', array(&$this, 'HMAK_Facebook_Album_Shortcode'));
-		add_shortcode('hmakfbphoto', array(&$this, 'HMAK_Facebook_Photo_Shortcode'));
-		add_action( 'wp_enqueue_scripts', array(&$this, 'adding_styles'));		
-		add_action('admin_enqueue_scripts', array(&$this,'custom_css_mce_button'));
-		add_action( 'admin_head', array(&$this, 'custom_mce_button'));		
+		add_action("admin_menu", array($this, 'add_menu_item'));
+		add_shortcode('hmakfbalbum', array($this, 'HMAK_Facebook_Album_Shortcode'));
+		add_shortcode('hmakfbphoto', array($this, 'HMAK_Facebook_Photo_Shortcode'));
+		add_action( 'wp_enqueue_scripts', array($this, 'adding_styles'));		
+		add_action('admin_enqueue_scripts', array($this,'custom_css_mce_button'));
+		add_action( 'admin_head', array($this, 'custom_mce_button'));		
 		add_action( 'admin_init', function() {
 			register_setting( 'hmak-facebook-photos-plugin-settings', 'facebook_album_fb_app_token' );
 		});			
@@ -23,11 +23,12 @@ class Hura_Apps_Photos {
 	
 	function create_upload_folder() {	 
 		$upload = wp_upload_dir();
-		$upload_dir = $upload['basedir'];
-		$upload_dir = $upload_dir . '/huraapps-photos';
+		$upload_dir = trailingslashit($upload['basedir']) . 'huraapps-photos';
 		if (! is_dir($upload_dir)) {
-		   mkdir( $upload_dir, 0700 );
+		   wp_mkdir_p($upload_dir);
 		}
+
+		return $upload_dir;
 	}
 	
 	function custom_mce_button() {
@@ -35,8 +36,8 @@ class Hura_Apps_Photos {
 			return false;
 		}
 		if ( 'true' == get_user_option( 'rich_editing' ) ) {
-			add_filter( 'mce_external_plugins', array(&$this, 'custom_tinymce_plugin' ));
-			add_filter( 'mce_buttons', array(&$this, 'register_mce_button' ));
+			add_filter( 'mce_external_plugins', array($this, 'custom_tinymce_plugin' ));
+			add_filter( 'mce_buttons', array($this, 'register_mce_button' ));
 		}
 	}	
 
@@ -55,11 +56,87 @@ class Hura_Apps_Photos {
 	}	
 
 	function check_cURL(){
-		return function_exists('curl_version');
+		return function_exists('curl_version') || function_exists('wp_remote_get');
 	}
 	
 	function isSafari($ua) {
 		return preg_match("/^((?!chrome).)*safari/i",$ua) && stripos($ua,' version/')!==false && stripos($ua,'mqqbrowser')===false;
+	}
+
+	function get_user_agent() {
+		if (isset($_SERVER['HTTP_USER_AGENT'])) {
+			return (string) $_SERVER['HTTP_USER_AGENT'];
+		}
+
+		return '';
+	}
+
+	function should_prefer_webp() {
+		return !$this->isSafari($this->get_user_agent());
+	}
+
+	function sanitize_facebook_id($id) {
+		$id = preg_replace('/[^0-9]/', '', (string) $id);
+
+		return $id;
+	}
+
+	function get_cache_file($prefix, $id) {
+		$upload_dir = $this->create_upload_folder();
+
+		return trailingslashit($upload_dir) . $prefix . '_' . $id;
+	}
+
+	function read_cache_file($cache_file) {
+		if (!file_exists($cache_file)) {
+			return null;
+		}
+
+		$raw = file_get_contents($cache_file);
+		if ($raw === false || $raw === '') {
+			return null;
+		}
+
+		$decoded = base64_decode($raw, true);
+		if ($decoded === false) {
+			return null;
+		}
+
+		$data = @unserialize($decoded);
+
+		if ($data === false && $decoded !== serialize(false)) {
+			return null;
+		}
+
+		return $data;
+	}
+
+	function write_cache_file($cache_file, $data) {
+		if ($data === null) {
+			return;
+		}
+
+		file_put_contents($cache_file, base64_encode(serialize($data)), LOCK_EX);
+	}
+
+	function render_picture_html($jpg_source, $webp_source, $alt_text) {
+		$jpg_source = (string) $jpg_source;
+		$webp_source = (string) $webp_source;
+		$alt_text = (string) $alt_text;
+
+		if ($jpg_source === '') {
+			return '';
+		}
+
+		$markup = '<picture>';
+		if ($webp_source !== '') {
+			$markup .= '<source srcset="' . esc_url($webp_source) . '" type="image/webp">';
+		}
+		$markup .= '<source srcset="' . esc_url($jpg_source) . '" type="image/jpeg">';
+		$markup .= '<img src="' . esc_url($jpg_source) . '" alt="' . esc_attr($alt_text) . '">';
+		$markup .= '</picture>';
+
+		return $markup;
 	}
 
 	function settings_page()
@@ -170,11 +247,11 @@ class Hura_Apps_Photos {
 								<h3 class="hndle2"><span>About Us</span></h3>
 								<div class="inside">
 									<p></p>
-									<p>Hura Apps is a Vietnam-based Web & Mobile App development team. You can contact us via:</p>
+									<p>Hura Apps is a web development team based in Vietnam. You can contact us at:</p>
 									<ul>
-										<li>Email: <a href="mailto:info@huraapps.com">Info@huraapps.com</a></li>
-										<li>Facebook: <a href="https://www.facebook.com/huraapps" target="_blank">Huraapps</a></li>
-										<li>Website: <a href="https://www.huraapps.com" target="_blank">wWw.HuraApps.Com</a></li>
+										<li>Email: <a href="mailto:support@huraapps.com">support@huraapps.com</a></li>
+										<li>LinkedIn: <a href="https://www.linkedin.com/company/huraapps" target="_blank">huraapps</a></li>
+										<li>Website: <a href="https://www.huraapps.com" target="_blank">www.huraapps.Com</a></li>
 									</ul>
 									<p></p>
 								</div>
@@ -314,13 +391,32 @@ class Hura_Apps_Photos {
 
 	function HMAK_fetchUrl($url)
 	{
-		 $ch = curl_init();
-		 curl_setopt($ch, CURLOPT_URL, $url);
-		 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		 curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-		 $retData = curl_exec($ch);
-		 curl_close($ch);
-		 return $retData;
+		if (function_exists('wp_remote_get')) {
+			$response = wp_remote_get($url, array('timeout' => 20));
+			if (is_wp_error($response)) {
+				return false;
+			}
+
+			$code = wp_remote_retrieve_response_code($response);
+			if ((int) $code < 200 || (int) $code >= 300) {
+				return false;
+			}
+
+			return wp_remote_retrieve_body($response);
+		}
+
+		if (!function_exists('curl_init')) {
+			return false;
+		}
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+		$retData = curl_exec($ch);
+		curl_close($ch);
+
+		return $retData;
 	}
 
 	function HMAK_Facebook_Photo_Shortcode($atts) {
@@ -329,50 +425,55 @@ class Hura_Apps_Photos {
 			'lightbox'=>0,
 		);
 		$fb = shortcode_atts($default, $atts);		
-		$photo_id = $fb['id'];		
-		$lightbox = $fb['lightbox'];
-		
-		$this->create_upload_folder();
-		
-		$is_image = false;
-		$upload = wp_upload_dir();
-		$imageData = $upload['basedir'].'/huraapps-photos/photo_'.$photo_id;		
-				
-		if (file_exists($imageData)){
-			$image = unserialize(base64_decode(file_get_contents($imageData)));
-			$image_source = ( isset($image['webp_images']) && $this->isSafari($_SERVER['HTTP_USER_AGENT'])==false )?$image['webp_images'][0]['source']:$image['images'][0]['source'];
-			$jpg_source = ( isset($image['images']) ) ? $image['images'][0]['source'] : '';
-			$webp_source = ( isset($image['webp_images']) ) ? $image['webp_images'][0]['source'] : $jpg_source;
-			if( getimagesize($image_source) ){
-				$is_image = true;
-			}
+		$photo_id = $this->sanitize_facebook_id($fb['id']);
+		$lightbox = !empty($fb['lightbox']) ? 1 : 0;
+
+		if ($photo_id === '') {
+			return '';
 		}
-		
-		if(!$is_image){
-			$facebook_access_token = get_option('facebook_album_fb_app_token');
-			$image = json_decode($this->HMAK_fetchUrl("https://graph.facebook.com/".$photo_id."?fields=webp_images,images&access_token=".$facebook_access_token),true);
-			if( !isset($image['error']) ){
-				file_put_contents($imageData,base64_encode(serialize($image)));
-				$is_image = true;
+
+		$prefer_webp = $this->should_prefer_webp();
+		$cache_file = $this->get_cache_file('photo', $photo_id);
+		$image = $this->read_cache_file($cache_file);
+
+		if (!is_array($image) || isset($image['error'])) {
+			$facebook_access_token = trim((string) get_option('facebook_album_fb_app_token'));
+			if ($facebook_access_token === '') {
+				return '';
 			}
+
+			$url = 'https://graph.facebook.com/' . $photo_id . '?fields=webp_images,images&access_token=' . rawurlencode($facebook_access_token);
+			$response = $this->HMAK_fetchUrl($url);
+			if ($response === false) {
+				return '';
+			}
+
+			$image = json_decode($response, true);
+			if (!is_array($image) || isset($image['error'])) {
+				return '';
+			}
+
+			$this->write_cache_file($cache_file, $image);
 		}
-		
-		$code = '';
-		if($is_image){
-			$image_source = ( isset($image['webp_images']) && $this->isSafari($_SERVER['HTTP_USER_AGENT'])==false )?$image['webp_images'][0]['source']:$image['images'][0]['source'];	
-			$jpg_source = ( isset($image['images']) ) ? $image['images'][0]['source'] : '';
-			$webp_source = ( isset($image['webp_images']) ) ? $image['webp_images'][0]['source'] : $jpg_source;
-			$code .= '<div class="hmak-facebook-album-image-wrapper">';
-			if($lightbox==1){$code .= '<a class="hmak-fancybox" href="'.$image_source.'">';}
-			//$code .= '<img src="'.$image_source.'">';
-			$code .= '<picture>';
-			$code .= '<source srcset="'.$webp_source.'" type="image/webp">';
-			$code .= '<source srcset="'.$jpg_source.'" type="image/jpeg"> ';
-			$code .= '<img src="'.$jpg_source.'">';
-			$code .= '</picture>';
-			if($lightbox==1){$code .= '</a>';}
-			$code .= '</div>';
-		}		
+
+		if (!isset($image['images'][0]['source'])) {
+			return '';
+		}
+
+		$jpg_source = isset($image['images'][0]['source']) ? $image['images'][0]['source'] : '';
+		$webp_source = isset($image['webp_images'][0]['source']) ? $image['webp_images'][0]['source'] : $jpg_source;
+		$image_source = $prefer_webp ? $webp_source : $jpg_source;
+
+		$code = '<div class="hmak-facebook-album-image-wrapper">';
+		if ($lightbox === 1) {
+			$code .= '<a class="hmak-fancybox" href="' . esc_url($image_source) . '">';
+		}
+		$code .= $this->render_picture_html($jpg_source, $webp_source, 'Facebook photo');
+		if ($lightbox === 1) {
+			$code .= '</a>';
+		}
+		$code .= '</div>';
+
 		return $code;
 	}
 
@@ -381,84 +482,83 @@ class Hura_Apps_Photos {
 			'id' => '',
 			'lightbox'=>0,
 		);
-		$fb = shortcode_atts($default, $atts);		
-		$album_id = $fb['id'];		
-		$lightbox = $fb['lightbox'];
-		
-		$this->create_upload_folder();
-		
-		$is_album = false;
-		$upload = wp_upload_dir();
-		$albumData = $upload['basedir'].'/huraapps-photos/album_'.$album_id;
+		$fb = shortcode_atts($default, $atts);
+		$album_id = $this->sanitize_facebook_id($fb['id']);
+		$lightbox = !empty($fb['lightbox']) ? 1 : 0;
 		$cachetime = 3600;
-		
-		if (file_exists($albumData) && (time() - $cachetime < filemtime($albumData))){
-			$album = unserialize(base64_decode(file_get_contents($albumData)));
-			$is_album = true;
-		}else{
-			$facebook_access_token = get_option('facebook_album_fb_app_token'); 
-			$album = json_decode($this->HMAK_fetchUrl("https://graph.facebook.com/{$album_id}?fields=photos.limit(100){webp_images,name,images}&access_token={$facebook_access_token}"));
-			if( !isset($album->error) ){
-				file_put_contents($albumData,base64_encode(serialize($album)));
-				$is_album = true;	
-			}else{
-				if(file_exists($albumData)){
-					$album = unserialize(base64_decode(file_get_contents($albumData)));
-					$is_album = true;	
-				}
-			}					
-		}		
-		
-		$code = '';		
-		if($is_album){
-			if( !isset($album->error) ){
-				$photos = $album->photos->data;					
-				$images = array();
-				foreach($photos as $photo){
-					$caption = "";
-					if(isset($photo->name)){
-						$caption = $photo->name;
-					}
-					$images[] = array(
-						'src'	=> ( isset($photo->webp_images) && $this->isSafari($_SERVER['HTTP_USER_AGENT'])==false )?$photo->webp_images[0]->source:$photo->images[0]->source,
-						'jpg'	=> ( isset($photo->images) ) ? $photo->images[0]->source : '',
-						'webp'	=> ( isset($photo->webp_images) ) ? $photo->webp_images[0]->source : $photo->images[0]->source,
-						'alt'	=> $caption
-					);
-				}
-				$code = "";
-				foreach($images as $image){
-					if($image['alt']!=""){
-						$caption = '<div class="hmak-facebook-album-image-caption">'.$image['alt'].'</div>';
-					}else{
-						$caption = '';
-					}			
-					$code .= '<div class="hmak-facebook-album-image-wrapper">';
-					if($lightbox==1){$code .= '<a class="hmak-fancybox" href="'.$image['src'].'" rel="fancybox">';}
-					//$code .= '<img src="'.$image['src'].'">';
-					$code .= '<picture>';
-					$code .= '<source srcset="'.$image['webp'].'" type="image/webp">';
-					$code .= '<source srcset="'.$image['jpg'].'" type="image/jpeg"> ';
-					$code .= '<img src="'.$image['jpg'].'">';
-					$code .= '</picture>';
-					if($lightbox==1){$code .= '</a>';}
-					$code .= $caption;
-					$code .= '</div>';
+
+		if ($album_id === '') {
+			return '';
+		}
+
+		$prefer_webp = $this->should_prefer_webp();
+		$cache_file = $this->get_cache_file('album', $album_id);
+		$album = null;
+
+		if (file_exists($cache_file) && (time() - $cachetime < filemtime($cache_file))) {
+			$album = $this->read_cache_file($cache_file);
+		}
+
+		if (!is_object($album) || isset($album->error)) {
+			$facebook_access_token = trim((string) get_option('facebook_album_fb_app_token'));
+			if ($facebook_access_token === '') {
+				return '';
+			}
+
+			$url = "https://graph.facebook.com/{$album_id}?fields=photos.limit(100){webp_images,name,images}&access_token=" . rawurlencode($facebook_access_token);
+			$response = $this->HMAK_fetchUrl($url);
+			if ($response !== false) {
+				$fresh_album = json_decode($response);
+				if (is_object($fresh_album) && !isset($fresh_album->error)) {
+					$album = $fresh_album;
+					$this->write_cache_file($cache_file, $album);
 				}
 			}
+
+			if ((!is_object($album) || isset($album->error)) && file_exists($cache_file)) {
+				$album = $this->read_cache_file($cache_file);
+			}
 		}
-		
+
+		if (!is_object($album) || isset($album->error) || !isset($album->photos->data) || !is_array($album->photos->data)) {
+			return '';
+		}
+
+		$code = '';
+		foreach($album->photos->data as $photo) {
+			if (!isset($photo->images[0]->source)) {
+				continue;
+			}
+
+			$caption_text = isset($photo->name) ? (string) $photo->name : '';
+			$jpg_source = (string) $photo->images[0]->source;
+			$webp_source = isset($photo->webp_images[0]->source) ? (string) $photo->webp_images[0]->source : $jpg_source;
+			$image_source = $prefer_webp ? $webp_source : $jpg_source;
+
+			$code .= '<div class="hmak-facebook-album-image-wrapper">';
+			if ($lightbox === 1) {
+				$code .= '<a class="hmak-fancybox" href="' . esc_url($image_source) . '" rel="fancybox">';
+			}
+			$code .= $this->render_picture_html($jpg_source, $webp_source, $caption_text);
+			if ($lightbox === 1) {
+				$code .= '</a>';
+			}
+			if ($caption_text !== '') {
+				$code .= '<div class="hmak-facebook-album-image-caption">' . esc_html($caption_text) . '</div>';
+			}
+			$code .= '</div>';
+		}
+
 		return $code;
 	}
 
 	function adding_styles() {
-		wp_register_style('my_stylesheet', plugins_url('style.css', __FILE__));
-		wp_enqueue_style('my_stylesheet');
+		wp_enqueue_style('hura-apps-photos-style', plugins_url('style.css', __FILE__), array(), '1.4');
 	}
 
 	function add_menu_item()
 	{
-		add_menu_page("Hura Apps Photos Panel", "Hura Apps Photos", "manage_options", "hura-apps-photos-panel", array(&$this,"settings_page"), null, 99);
+		add_menu_page("Hura Apps Photos Panel", "Hura Apps Photos", "manage_options", "hura-apps-photos-panel", array($this,"settings_page"), null, 99);
 	}
 }
 
