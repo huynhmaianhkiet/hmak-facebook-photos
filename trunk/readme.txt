@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: image, post, page, facebook, album, gallery, photo
 Requires at least: 3.0
 Tested up to: 6.9
-Stable tag: 1.4
+Stable tag: 1.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -73,6 +73,7 @@ If you found any issue, please let me know by send email to me at huynhmaianhkie
 
 == Changelog ==
 
+v1.5: Added Gutenberg block support while keeping shortcode compatibility
 v1.01: Adding lightbox option for image
 v1.02: Fixed some issues
 v1.1: Fixed some issues

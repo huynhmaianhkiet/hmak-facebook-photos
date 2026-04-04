@@ -1,7 +1,7 @@
 <?php
 /*
   Plugin Name: Hura Apps Photos
-  Version: 1.4
+	Version: 1.5
   Description: Showing your Facebook Photos, Facebook Albums on your WordPress website.
   Author: Hura Apps
   Author URI: https://www.huraapps.com
@@ -13,6 +13,7 @@ class Hura_Apps_Photos {
 		add_action("admin_menu", array($this, 'add_menu_item'));
 		add_shortcode('hmakfbalbum', array($this, 'HMAK_Facebook_Album_Shortcode'));
 		add_shortcode('hmakfbphoto', array($this, 'HMAK_Facebook_Photo_Shortcode'));
+		add_action('init', array($this, 'register_blocks'));
 		add_action( 'wp_enqueue_scripts', array($this, 'adding_styles'));		
 		add_action('admin_enqueue_scripts', array($this,'custom_css_mce_button'));
 		add_action( 'admin_head', array($this, 'custom_mce_button'));		
@@ -137,6 +138,60 @@ class Hura_Apps_Photos {
 		$markup .= '</picture>';
 
 		return $markup;
+	}
+
+	function register_blocks() {
+		if (!function_exists('register_block_type')) {
+			return;
+		}
+
+		wp_register_script(
+			'hura-apps-photos-block-editor',
+			plugins_url('/block-editor.js', __FILE__),
+			array('wp-blocks', 'wp-element', 'wp-components', 'wp-i18n', 'wp-block-editor', 'wp-server-side-render'),
+			'1.5',
+			true
+		);
+
+		register_block_type('hura/apps-photos', array(
+			'editor_script' => 'hura-apps-photos-block-editor',
+			'render_callback' => array($this, 'render_hura_apps_photos_block'),
+			'attributes' => array(
+				'fbType' => array(
+					'type' => 'string',
+					'default' => 'hmakfbalbum',
+				),
+				'fbID' => array(
+					'type' => 'string',
+					'default' => '',
+				),
+				'lightbox' => array(
+					'type' => 'boolean',
+					'default' => false,
+				),
+			),
+		));
+	}
+
+	function render_hura_apps_photos_block($attributes) {
+		$fb_type = isset($attributes['fbType']) ? (string) $attributes['fbType'] : 'hmakfbalbum';
+		$fb_id = isset($attributes['fbID']) ? $this->sanitize_facebook_id($attributes['fbID']) : '';
+		$lightbox = !empty($attributes['lightbox']) ? 1 : 0;
+
+		if ($fb_id === '') {
+			return '';
+		}
+
+		$shortcode_atts = array(
+			'id' => $fb_id,
+			'lightbox' => $lightbox,
+		);
+
+		if ($fb_type === 'hmakfbphoto') {
+			return $this->HMAK_Facebook_Photo_Shortcode($shortcode_atts);
+		}
+
+		return $this->HMAK_Facebook_Album_Shortcode($shortcode_atts);
 	}
 
 	function settings_page()
@@ -553,7 +608,7 @@ class Hura_Apps_Photos {
 	}
 
 	function adding_styles() {
-		wp_enqueue_style('hura-apps-photos-style', plugins_url('style.css', __FILE__), array(), '1.4');
+		wp_enqueue_style('hura-apps-photos-style', plugins_url('style.css', __FILE__), array(), '1.5');
 	}
 
 	function add_menu_item()
