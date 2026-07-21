@@ -482,6 +482,7 @@ class Hura_Apps_Photos {
 		$fb = shortcode_atts($default, $atts);		
 		$photo_id = $this->sanitize_facebook_id($fb['id']);
 		$lightbox = !empty($fb['lightbox']) ? 1 : 0;
+		$cachetime = 3600;
 
 		if ($photo_id === '') {
 			return '';
@@ -489,9 +490,12 @@ class Hura_Apps_Photos {
 
 		$prefer_webp = $this->should_prefer_webp();
 		$cache_file = $this->get_cache_file('photo', $photo_id);
-		$image = $this->read_cache_file($cache_file);
 
-		if (!is_array($image) || isset($image['error'])) {
+		if (file_exists($cache_file) && (time() - $cachetime < filemtime($cache_file))) {
+			$image = $this->read_cache_file($cache_file);
+		}
+
+		if (!isset($image) || !is_array($image) || isset($image['error'])) {
 			$facebook_access_token = trim((string) get_option('facebook_album_fb_app_token'));
 			if ($facebook_access_token === '') {
 				return '';
